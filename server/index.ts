@@ -2,7 +2,7 @@ import express, { NextFunction, type Request, Response } from "express";
 import { registerRoutes } from "./routes";
 import { log, serveStatic, setupVite } from "./vite";
 
-console.log("Starting server...");
+console.log("🔧 Starting AlarmPro server...");
 
 const app = express();
 app.use(express.json());
@@ -39,9 +39,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  console.log("Registering routes...");
+  console.log("📋 Registering routes...");
   const server = await registerRoutes(app);
-  console.log("Routes registered successfully");
+  console.log("✅ Routes registered successfully");
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -70,6 +70,8 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    const url = `http://localhost:${port}`;
+    log(`🚀 Server ready at ${url}`);
+    log(`📱 Open your browser and visit: ${url}`);
   });
 })();

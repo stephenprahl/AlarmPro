@@ -1,13 +1,16 @@
+import { insertCustomerSchema, insertJobSchema } from "@shared/schema";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { insertCustomerSchema, insertJobSchema } from "@shared/schema";
 import multer from "multer";
 import * as XLSX from "xlsx";
+import { registerAuthRoutes } from "./auth-routes";
+import { storage } from "./storage";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register authentication routes
+  registerAuthRoutes(app, storage);
   // Customer routes
   app.get("/api/customers", async (req, res) => {
     try {
@@ -191,12 +194,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
       let customersCreated = 0;
       let jobsCreated = 0;
-      
+
       // Process customers if Customers sheet exists
       if (workbook.SheetNames.includes('Customers')) {
         const customersSheet = workbook.Sheets['Customers'];
         const customersData = XLSX.utils.sheet_to_json(customersSheet, { header: 1 });
-        
+
         // Skip header row
         for (let i = 1; i < customersData.length; i++) {
           const row = customersData[i] as any[];
@@ -208,12 +211,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 email: String(row[2] || ''),
                 phone: String(row[3] || ''),
                 address: String(row[4] || ''),
-                customerType: (row[5] && ['Commercial', 'Residential', 'Industrial'].includes(String(row[5]))) 
+                customerType: (row[5] && ['Commercial', 'Residential', 'Industrial'].includes(String(row[5])))
                   ? String(row[5]) as 'Commercial' | 'Residential' | 'Industrial'
                   : 'Commercial',
                 status: 'Active' as const
               };
-              
+
               const validatedData = insertCustomerSchema.parse(customerData);
               await storage.createCustomer(validatedData);
               customersCreated++;
@@ -223,23 +226,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
-      
+
       // Process jobs if Jobs sheet exists
       if (workbook.SheetNames.includes('Jobs')) {
         const jobsSheet = workbook.Sheets['Jobs'];
         const jobsData = XLSX.utils.sheet_to_json(jobsSheet, { header: 1 });
         const customers = await storage.getCustomers();
-        
+
         // Skip header row
         for (let i = 1; i < jobsData.length; i++) {
           const row = jobsData[i] as any[];
           if (row.length >= 6 && row[0] && row[1]) { // Ensure we have enough data
             try {
               // Find customer by companyName or create if doesn't exist
-              let customer = customers.find(c => 
+              let customer = customers.find(c =>
                 c.companyName.toLowerCase() === String(row[0]).toLowerCase()
               );
-              
+
               if (!customer && row[0]) {
                 // Create customer if not found
                 const newCustomerData = {
@@ -254,17 +257,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 customer = await storage.createCustomer(newCustomerData);
                 customers.push(customer);
               }
-              
+
               if (customer) {
-                const scheduledDate = row[4] ? 
+                const scheduledDate = row[4] ?
                   (row[4] instanceof Date ? row[4] : new Date(row[4])).toISOString().split('T')[0] :
                   new Date().toISOString().split('T')[0];
-                
+
                 const jobData = {
                   customerId: customer.id,
                   title: String(row[1] || 'Untitled Job'),
                   description: String(row[2] || ''),
-                  jobType: (row[3] && ['Inspection', 'Installation', 'Maintenance', 'Emergency'].includes(String(row[3]))) 
+                  jobType: (row[3] && ['Inspection', 'Installation', 'Maintenance', 'Emergency'].includes(String(row[3])))
                     ? String(row[3]) as 'Inspection' | 'Installation' | 'Maintenance' | 'Emergency'
                     : 'Inspection',
                   scheduledDate,
@@ -274,7 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   status: 'Scheduled' as const,
                   notes: String(row[11] || '')
                 };
-                
+
                 const validatedData = insertJobSchema.parse(jobData);
                 await storage.createJob(validatedData);
                 jobsCreated++;
@@ -303,9 +306,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/download/template/:type", async (req, res) => {
     try {
       const { type } = req.params;
-      
+
       let workbook = XLSX.utils.book_new();
-      
+
       if (type === 'customers') {
         const customersData = [
           ['Company Name', 'Contact Person', 'Email', 'Phone', 'Address', 'Customer Type'],
@@ -313,10 +316,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ['XYZ Restaurant', 'Jane Doe', 'jane@xyzrest.com', '555-0456', '456 Oak Ave, City, ST 12345', 'Commercial'],
           ['Home Owner', 'Bob Johnson', 'bob@email.com', '555-0789', '789 Pine Rd, City, ST 12345', 'Residential']
         ];
-        
+
         const worksheet = XLSX.utils.aoa_to_sheet(customersData);
         XLSX.utils.book_append_sheet(workbook, worksheet, "Customers");
-        
+
       } else if (type === 'jobs') {
         const jobsData = [
           ['Customer Name', 'Job Title', 'Description', 'Job Type', 'Scheduled Date', 'Scheduled Time', 'Duration (min)', 'Customer Email', 'Customer Phone', 'Customer Address', 'Price', 'Notes'],
@@ -324,20 +327,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ['XYZ Restaurant', 'System Installation', 'Install new fire suppression system', 'Installation', '2024-08-22', '10:00', '180', 'jane@xyzrest.com', '555-0456', '456 Oak Ave, City, ST 12345', '2500', 'Large commercial kitchen'],
           ['Home Owner', 'Detector Maintenance', 'Replace smoke detector batteries', 'Maintenance', '2024-08-25', '14:00', '30', 'bob@email.com', '555-0789', '789 Pine Rd, City, ST 12345', '75', 'Residential service']
         ];
-        
+
         const worksheet = XLSX.utils.aoa_to_sheet(jobsData);
         XLSX.utils.book_append_sheet(workbook, worksheet, "Jobs");
-        
+
       } else {
         return res.status(400).json({ message: "Invalid template type" });
       }
-      
+
       const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-      
+
       res.setHeader('Content-Disposition', `attachment; filename="${type}_template.xlsx"`);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.send(buffer);
-      
+
     } catch (error) {
       res.status(500).json({ message: "Failed to generate template", error: String(error) });
     }

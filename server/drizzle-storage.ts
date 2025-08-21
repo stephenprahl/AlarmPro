@@ -1,6 +1,10 @@
 import {
-  customers, jobs, type Customer, type CustomerTypeDistribution, type DashboardStats, type InsertCustomer, type InsertJob, type Job, type JobStatusDistribution,
-  type MonthlyTrend, type RevenueByJobType, type WeeklyJobsData
+  customers, jobs, users, type Customer, type CustomerTypeDistribution, type DashboardStats, type InsertCustomer, type InsertJob,
+  type InsertUser,
+  type Job, type JobStatusDistribution,
+  type MonthlyTrend, type RevenueByJobType,
+  type User,
+  type WeeklyJobsData
 } from '@shared/schema';
 import { count, desc, eq, sql, sum } from 'drizzle-orm';
 import { db } from './db';
@@ -77,6 +81,44 @@ export class DrizzleStorage implements IStorage {
 
   async deleteJob(id: string): Promise<boolean> {
     const result = await db.delete(jobs).where(eq(jobs.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // User operations
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result[0];
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const result = await db.insert(users).values(user as any).returning();
+    return result[0];
+  }
+
+  async updateUser(id: string, user: Partial<InsertUser>): Promise<User> {
+    const result = await db.update(users)
+      .set({ ...user, updatedAt: new Date() } as any)
+      .where(eq(users.id, id))
+      .returning();
+
+    if (result.length === 0) {
+      throw new Error(`User with id ${id} not found`);
+    }
+
+    return result[0];
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    const result = await db.delete(users).where(eq(users.id, id));
     return result.rowCount !== null && result.rowCount > 0;
   }
 

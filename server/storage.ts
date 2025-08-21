@@ -1,4 +1,4 @@
-import { type Customer, type CustomerTypeDistribution, type DashboardStats, type InsertCustomer, type InsertJob, type Job, type JobStatusDistribution, type MonthlyTrend, type RevenueByJobType, type WeeklyJobsData } from "@shared/schema";
+import { type Customer, type CustomerTypeDistribution, type DashboardStats, type InsertCustomer, type InsertJob, type InsertUser, type Job, type JobStatusDistribution, type MonthlyTrend, type RevenueByJobType, type User, type WeeklyJobsData } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -17,6 +17,14 @@ export interface IStorage {
   updateJob(id: string, job: Partial<InsertJob>): Promise<Job>;
   deleteJob(id: string): Promise<boolean>;
 
+  // User operations
+  getUsers(): Promise<User[]>;
+  getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, user: Partial<InsertUser>): Promise<User>;
+  deleteUser(id: string): Promise<boolean>;
+
   // Dashboard statistics
   getDashboardStats(): Promise<DashboardStats>;
   getJobStatusDistribution(): Promise<JobStatusDistribution[]>;
@@ -29,10 +37,12 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private customers: Map<string, Customer>;
   private jobs: Map<string, Job>;
+  private users: Map<string, User>;
 
   constructor() {
     this.customers = new Map();
     this.jobs = new Map();
+    this.users = new Map();
 
     // Initialize with sample data for demo purposes
     this.initializeSampleData();
@@ -209,6 +219,47 @@ export class MemStorage implements IStorage {
     return updated;
   } async deleteJob(id: string): Promise<boolean> {
     return this.jobs.delete(id);
+  }
+
+  // User operations
+  async getUsers(): Promise<User[]> {
+    return Array.from(this.users.values()).sort((a, b) =>
+      new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+    );
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.email === email);
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const id = randomUUID();
+    const user: User = {
+      ...userData,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as User;
+    this.users.set(id, user);
+    return user;
+  }
+
+  async updateUser(id: string, userData: Partial<InsertUser>): Promise<User> {
+    const existing = this.users.get(id);
+    if (!existing) {
+      throw new Error("User not found");
+    }
+    const updated = { ...existing, ...userData, updatedAt: new Date() } as User;
+    this.users.set(id, updated);
+    return updated;
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    return this.users.delete(id);
   }
 
   // Dashboard statistics
