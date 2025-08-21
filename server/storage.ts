@@ -1,4 +1,4 @@
-import { type Customer, type InsertCustomer, type Job, type InsertJob, type DashboardStats, type JobStatusDistribution, type MonthlyTrend, type CustomerTypeDistribution, type WeeklyJobsData, type RevenueByJobType } from "@shared/schema";
+import { type Customer, type CustomerTypeDistribution, type DashboardStats, type InsertCustomer, type InsertJob, type Job, type JobStatusDistribution, type MonthlyTrend, type RevenueByJobType, type WeeklyJobsData } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -8,7 +8,7 @@ export interface IStorage {
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   updateCustomer(id: string, customer: Partial<InsertCustomer>): Promise<Customer>;
   deleteCustomer(id: string): Promise<boolean>;
-  
+
   // Job operations
   getJobs(): Promise<Job[]>;
   getJob(id: string): Promise<Job | undefined>;
@@ -16,7 +16,7 @@ export interface IStorage {
   createJob(job: InsertJob): Promise<Job>;
   updateJob(id: string, job: Partial<InsertJob>): Promise<Job>;
   deleteJob(id: string): Promise<boolean>;
-  
+
   // Dashboard statistics
   getDashboardStats(): Promise<DashboardStats>;
   getJobStatusDistribution(): Promise<JobStatusDistribution[]>;
@@ -33,7 +33,7 @@ export class MemStorage implements IStorage {
   constructor() {
     this.customers = new Map();
     this.jobs = new Map();
-    
+
     // Initialize with sample data for demo purposes
     this.initializeSampleData();
   }
@@ -139,7 +139,7 @@ export class MemStorage implements IStorage {
 
   // Customer operations
   async getCustomers(): Promise<Customer[]> {
-    return Array.from(this.customers.values()).sort((a, b) => 
+    return Array.from(this.customers.values()).sort((a, b) =>
       new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
     );
   }
@@ -150,11 +150,11 @@ export class MemStorage implements IStorage {
 
   async createCustomer(customerData: InsertCustomer): Promise<Customer> {
     const id = randomUUID();
-    const customer: Customer = { 
-      ...customerData, 
+    const customer: Customer = {
+      ...customerData,
       id,
       createdAt: new Date(),
-    };
+    } as Customer;
     this.customers.set(id, customer);
     return customer;
   }
@@ -164,18 +164,16 @@ export class MemStorage implements IStorage {
     if (!existing) {
       throw new Error("Customer not found");
     }
-    const updated = { ...existing, ...customerData };
+    const updated = { ...existing, ...customerData } as Customer;
     this.customers.set(id, updated);
     return updated;
-  }
-
-  async deleteCustomer(id: string): Promise<boolean> {
+  } async deleteCustomer(id: string): Promise<boolean> {
     return this.customers.delete(id);
   }
 
   // Job operations
   async getJobs(): Promise<Job[]> {
-    return Array.from(this.jobs.values()).sort((a, b) => 
+    return Array.from(this.jobs.values()).sort((a, b) =>
       new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
     );
   }
@@ -192,11 +190,11 @@ export class MemStorage implements IStorage {
 
   async createJob(jobData: InsertJob): Promise<Job> {
     const id = randomUUID();
-    const job: Job = { 
-      ...jobData, 
+    const job: Job = {
+      ...jobData,
       id,
       createdAt: new Date(),
-    };
+    } as Job;
     this.jobs.set(id, job);
     return job;
   }
@@ -206,12 +204,10 @@ export class MemStorage implements IStorage {
     if (!existing) {
       throw new Error("Job not found");
     }
-    const updated = { ...existing, ...jobData };
+    const updated = { ...existing, ...jobData } as Job;
     this.jobs.set(id, updated);
     return updated;
-  }
-
-  async deleteJob(id: string): Promise<boolean> {
+  } async deleteJob(id: string): Promise<boolean> {
     return this.jobs.delete(id);
   }
 
@@ -219,26 +215,26 @@ export class MemStorage implements IStorage {
   async getDashboardStats(): Promise<DashboardStats> {
     const customers = Array.from(this.customers.values());
     const jobs = Array.from(this.jobs.values());
-    
+
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-    
+
     const completedThisMonth = jobs.filter(job => {
       const jobDate = new Date(job.scheduledDate);
-      return job.status === "Completed" && 
-             jobDate.getMonth() === currentMonth && 
-             jobDate.getFullYear() === currentYear;
+      return job.status === "Completed" &&
+        jobDate.getMonth() === currentMonth &&
+        jobDate.getFullYear() === currentYear;
     }).length;
-    
+
     const monthlyRevenue = jobs
       .filter(job => {
         const jobDate = new Date(job.scheduledDate);
-        return job.status === "Completed" && 
-               jobDate.getMonth() === currentMonth && 
-               jobDate.getFullYear() === currentYear;
+        return job.status === "Completed" &&
+          jobDate.getMonth() === currentMonth &&
+          jobDate.getFullYear() === currentYear;
       })
       .reduce((sum, job) => sum + parseFloat(job.price || "0"), 0);
-    
+
     return {
       totalCustomers: customers.length,
       pendingInspections: jobs.filter(job => job.jobType === "Inspection" && job.status === "Scheduled").length,
@@ -256,7 +252,7 @@ export class MemStorage implements IStorage {
 
     const colors = {
       "Scheduled": "#3b82f6",
-      "In Progress": "#f59e0b", 
+      "In Progress": "#f59e0b",
       "Completed": "#10b981",
       "Overdue": "#ef4444",
       "Cancelled": "#6b7280",
@@ -273,17 +269,17 @@ export class MemStorage implements IStorage {
     const jobs = Array.from(this.jobs.values());
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const currentYear = new Date().getFullYear();
-    
+
     return months.map((month, index) => {
       const monthJobs = jobs.filter(job => {
         const jobDate = new Date(job.scheduledDate);
         return jobDate.getMonth() === index && jobDate.getFullYear() === currentYear;
       });
-      
+
       const revenue = monthJobs
         .filter(job => job.status === "Completed")
         .reduce((sum, job) => sum + parseFloat(job.price || "0"), 0);
-      
+
       return {
         month,
         jobs: monthJobs.length,
@@ -316,15 +312,15 @@ export class MemStorage implements IStorage {
     const jobs = Array.from(this.jobs.values());
     const today = new Date();
     const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    
+
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    
+
     return days.map((day, index) => {
       const targetDate = new Date(oneWeekAgo.getTime() + index * 24 * 60 * 60 * 1000);
       const dateStr = targetDate.toISOString().split('T')[0];
-      
+
       const dayJobs = jobs.filter(job => job.scheduledDate === dateStr);
-      
+
       return {
         day,
         jobs: dayJobs.length,
@@ -339,7 +335,7 @@ export class MemStorage implements IStorage {
   async getRevenueByJobType(): Promise<RevenueByJobType[]> {
     const jobs = Array.from(this.jobs.values());
     const completedJobs = jobs.filter(job => job.status === "Completed");
-    
+
     const revenueByType = completedJobs.reduce((acc, job) => {
       const type = job.jobType;
       if (!acc[type]) {
@@ -358,4 +354,15 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Export DrizzleStorage for database usage
+import { DrizzleStorage } from './drizzle-storage';
+
+// Use MemStorage for now to ensure server starts
+console.log("Using MemStorage for development");
+
+export const storage = new MemStorage();// Export both for flexibility
+export let dbStorage: DrizzleStorage | undefined;
+export const memStorage = new MemStorage();
+
+// DrizzleStorage can be created later when needed
+console.log("Storage initialized with MemStorage");
