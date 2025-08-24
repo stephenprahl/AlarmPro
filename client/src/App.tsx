@@ -13,6 +13,7 @@ import Register from "@/pages/register";
 import Upload from "@/pages/upload";
 import Welcome from "@/pages/welcome";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Route, Switch, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 
@@ -20,18 +21,20 @@ function ProtectedRouter() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
 
+  // Place all hooks at the top level, before any conditional logic
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && ["/login", "/register", "/welcome"].includes(location)) {
+      setLocation("/");
+    }
+  }, [isAuthenticated, isLoading, location, setLocation]);
+
+  // Then handle conditional rendering
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
-  }
-
-  // Redirect authenticated users from auth pages to dashboard
-  if (isAuthenticated && ["/login", "/register", "/welcome"].includes(location)) {
-    setLocation("/");
-    return null;
   }
 
   if (!isAuthenticated) {
