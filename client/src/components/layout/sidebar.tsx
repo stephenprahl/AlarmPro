@@ -1,5 +1,5 @@
+import { Calendar, Flame, LayoutDashboard, Upload, User, Users, Wrench } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { Flame, LayoutDashboard, Users, Calendar, Wrench, Upload, User } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -20,28 +20,27 @@ export default function Sidebar() {
           <Flame className="text-white text-2xl mr-3" />
           <h1 className="text-white text-xl font-bold">Flame Alarm Manager</h1>
         </div>
-        
+
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.path;
-            
+
             return (
               <Link key={item.path} href={item.path}>
-                <a className={`flex items-center px-4 py-3 rounded-lg font-medium transition-colors ${
-                  isActive
+                <div className={`flex items-center px-4 py-3 rounded-lg font-medium transition-colors cursor-pointer ${isActive
                     ? "text-primary-600 bg-primary-50"
                     : "text-gray-700 hover:bg-gray-100"
-                }`}>
+                  }`}>
                   <Icon className="w-5 h-5 mr-3" />
                   {item.label}
-                </a>
+                </div>
               </Link>
             );
           })}
         </nav>
-        
+
         {/* User Profile */}
         <div className="border-t border-gray-200 p-4">
           <div className="flex items-center">

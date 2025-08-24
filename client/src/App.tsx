@@ -18,7 +18,7 @@ import { queryClient } from "./lib/queryClient";
 
 function ProtectedRouter() {
   const { isAuthenticated, isLoading } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
 
   if (isLoading) {
     return (
@@ -28,50 +28,39 @@ function ProtectedRouter() {
     );
   }
 
-  // Show different pages based on authentication and location
-  if (!isAuthenticated) {
-    if (location === "/login") {
-      return <Login />;
-    }
-    if (location === "/register") {
-      return <Register />;
-    }
-    return <Welcome />;
+  // Redirect authenticated users from auth pages to dashboard
+  if (isAuthenticated && ["/login", "/register", "/welcome"].includes(location)) {
+    setLocation("/");
+    return null;
   }
 
-  // Redirect to dashboard if authenticated and on auth/welcome pages
-  if (isAuthenticated && ["/login", "/register", "/welcome"].includes(location)) {
-    return <Dashboard />;
+  if (!isAuthenticated) {
+    return (
+      <Switch>
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
+        <Route component={Welcome} />
+      </Switch>
+    );
   }
 
   return (
-    <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
-      <Route path="/welcome" component={Welcome} />
-      <Route path="/">
-        {isAuthenticated ? (
-          <div className="flex h-screen bg-gray-50">
-            <Sidebar />
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <Header />
-              <main className="flex-1 overflow-y-auto p-6">
-                <Switch>
-                  <Route path="/" component={Dashboard} />
-                  <Route path="/customers" component={Customers} />
-                  <Route path="/calendar" component={Calendar} />
-                  <Route path="/jobs" component={Jobs} />
-                  <Route path="/upload" component={Upload} />
-                  <Route component={NotFound} />
-                </Switch>
-              </main>
-            </div>
-          </div>
-        ) : (
-          <Welcome />
-        )}
-      </Route>
-    </Switch>
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-y-auto p-6">
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/customers" component={Customers} />
+            <Route path="/calendar" component={Calendar} />
+            <Route path="/jobs" component={Jobs} />
+            <Route path="/upload" component={Upload} />
+            <Route component={NotFound} />
+          </Switch>
+        </main>
+      </div>
+    </div>
   );
 }
 

@@ -21,10 +21,6 @@ export default function Register() {
     defaultValues: {
       email: "",
       password: "",
-      firstName: "",
-      lastName: "",
-      companyName: "",
-      phone: "",
     },
   });
 
@@ -88,9 +84,9 @@ export default function Register() {
             <div className="mx-auto w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mb-4">
               <Shield className="w-6 h-6 text-white" />
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-900">Setup Your Business Account</CardTitle>
+            <CardTitle className="text-2xl font-bold text-gray-900">Create Your Account</CardTitle>
             <CardDescription className="text-gray-600">
-              Create your alarm system business account
+              Sign up with your email and password
             </CardDescription>
           </CardHeader>
 
@@ -101,60 +97,6 @@ export default function Register() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    placeholder="John"
-                    {...form.register("firstName")}
-                    className="h-11"
-                  />
-                  {form.formState.errors.firstName && (
-                    <p className="text-sm text-red-600">{form.formState.errors.firstName.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    placeholder="Doe"
-                    {...form.register("lastName")}
-                    className="h-11"
-                  />
-                  {form.formState.errors.lastName && (
-                    <p className="text-sm text-red-600">{form.formState.errors.lastName.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="companyName">Company Name</Label>
-                <Input
-                  id="companyName"
-                  placeholder="Your Alarm Company"
-                  {...form.register("companyName")}
-                  className="h-11"
-                />
-                {form.formState.errors.companyName && (
-                  <p className="text-sm text-red-600">{form.formState.errors.companyName.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number (Optional)</Label>
-                <Input
-                  id="phone"
-                  placeholder="(555) 123-4567"
-                  {...form.register("phone")}
-                  className="h-11"
-                />
-                {form.formState.errors.phone && (
-                  <p className="text-sm text-red-600">{form.formState.errors.phone.message}</p>
-                )}
-              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>

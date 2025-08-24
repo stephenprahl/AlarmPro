@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginRequest } from "@shared/schema";
 import { Loader2, Shield } from "lucide-react";
@@ -12,6 +13,7 @@ import { useLocation } from "wouter";
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,12 +45,10 @@ export default function Login() {
 
       const result = await response.json();
 
-      // Store the token
-      localStorage.setItem("authToken", result.token);
-      localStorage.setItem("user", JSON.stringify(result.user));
+      // Use AuthContext to handle login
+      login(result.token, result.user);
 
-      // Redirect to dashboard
-      setLocation("/");
+      // The ProtectedRouter will automatically redirect to dashboard
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {

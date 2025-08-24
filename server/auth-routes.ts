@@ -26,10 +26,10 @@ export function registerAuthRoutes(app: Express, storage: IStorage) {
       const user = await storage.createUser({
         email: validatedData.email,
         password: hashedPassword,
-        firstName: validatedData.firstName,
-        lastName: validatedData.lastName,
-        companyName: validatedData.companyName,
-        phone: validatedData.phone,
+        firstName: "", // Default empty value
+        lastName: "", // Default empty value
+        companyName: "", // Default empty value
+        phone: "", // Default empty value
         isActive: "true",
       });
 

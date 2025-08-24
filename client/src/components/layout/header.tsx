@@ -26,7 +26,41 @@ export default function Header() {
 
   const getUserInitials = () => {
     if (!user) return "U";
-    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+
+    // If we have first and last names, use them
+    if (user.firstName && user.lastName) {
+      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+    }
+
+    // If we only have first name
+    if (user.firstName) {
+      return user.firstName.slice(0, 2).toUpperCase();
+    }
+
+    // If we only have last name
+    if (user.lastName) {
+      return user.lastName.slice(0, 2).toUpperCase();
+    }
+
+    // Fall back to using the first two characters of email
+    if (user.email) {
+      return user.email.slice(0, 2).toUpperCase();
+    }
+
+    // Final fallback
+    return "U";
+  };
+
+  const getUserDisplayName = () => {
+    if (!user) return "User";
+
+    const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+    if (fullName) {
+      return fullName;
+    }
+
+    // Fall back to email if no name available
+    return user.email || "User";
   };
 
   return (
@@ -63,7 +97,7 @@ export default function Header() {
                   </AvatarFallback>
                 </Avatar>
                 <span className="hidden md:block text-sm font-medium">
-                  {user?.firstName} {user?.lastName}
+                  {getUserDisplayName()}
                 </span>
               </Button>
             </DropdownMenuTrigger>
@@ -75,7 +109,7 @@ export default function Header() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-sm font-medium">{getUserDisplayName()}</p>
                   <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
               </div>
