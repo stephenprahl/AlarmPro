@@ -5,16 +5,16 @@ import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 
 async function setup() {
-  console.log('🚀 Setting up Drizzle ORM with Neon Database...\n');
+  console.log('🚀 Setting up Drizzle ORM with Aiven PostgreSQL...\n');
 
   // Check if .env has a real database URL
   const envContent = await readFile('.env', 'utf-8');
-  const hasRealDbUrl = !envContent.includes('your-username:your-password@your-host.neon.tech');
+  const hasRealDbUrl = !envContent.includes('your-username:your-password@your-host.aiven.io');
 
   if (!hasRealDbUrl) {
-    console.log('⚠️  Please update your DATABASE_URL in the .env file with your actual Neon database credentials.');
-    console.log('   Format: postgresql://username:password@host.neon.tech/database?sslmode=require\n');
-    console.log('   You can get this from your Neon dashboard at: https://console.neon.tech\n');
+    console.log('⚠️  Please update your DATABASE_URL in the .env file with your actual Aiven database credentials.');
+    console.log('   Format: postgresql://username:password@host.aiven.io:port/database?sslmode=require\n');
+    console.log('   You can get this from your Aiven console\n');
     return;
   }
 
