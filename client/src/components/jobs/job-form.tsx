@@ -20,7 +20,7 @@ interface JobFormProps {
 
 export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormProps) {
   const { toast } = useToast();
-  
+
   const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ["/api/customers"],
   });
@@ -77,7 +77,7 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
         <DialogHeader>
           <DialogTitle>Schedule New Job</DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -105,7 +105,7 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="jobType"
@@ -130,7 +130,7 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="title"
@@ -144,7 +144,7 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -152,13 +152,21 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Enter job description" rows={3} {...field} />
+                    <Textarea
+                      placeholder="Enter job description"
+                      rows={3}
+                      value={field.value ?? ""}
+                      onChange={e => field.onChange(e.target.value)}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -173,7 +181,7 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="scheduledTime"
@@ -187,7 +195,7 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="estimatedDuration"
@@ -195,11 +203,12 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
                   <FormItem>
                     <FormLabel>Duration (minutes)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
+                      <Input
+                        type="number"
                         placeholder="60"
                         {...field}
-                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                        value={field.value ?? ""}
+                        onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -207,7 +216,7 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
                 )}
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -216,18 +225,19 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
                   <FormItem>
                     <FormLabel>Price</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
+                      <Input
+                        type="number"
                         step="0.01"
                         placeholder="0.00"
                         {...field}
+                        value={field.value ?? ""}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="status"
@@ -253,7 +263,7 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="notes"
@@ -261,19 +271,27 @@ export default function JobForm({ isOpen, onClose, job, selectedDate }: JobFormP
                 <FormItem>
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Additional notes..." rows={3} {...field} />
+                    <Textarea
+                      placeholder="Additional notes..."
+                      rows={3}
+                      value={field.value ?? ""}
+                      onChange={e => field.onChange(e.target.value)}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <div className="flex justify-end space-x-3 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={createJobMutation.isPending}
               >
                 {createJobMutation.isPending ? "Scheduling..." : "Schedule Job"}
